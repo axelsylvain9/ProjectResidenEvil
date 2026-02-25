@@ -13,7 +13,7 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-  origin: [ "http://localhost:5173", "https://ton-domaine.com" ],
+  origin: [ "http://localhost:5173", "https://project-resident-evil.vercel.app" ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   credentials: true
 }));
