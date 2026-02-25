@@ -1,4 +1,3 @@
-// controllers/loan.controller.ts
 import { Request, Response } from "express";
 import loanService from "../services/loan.service";
 
