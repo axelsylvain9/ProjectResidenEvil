@@ -43,6 +43,9 @@ const VirementSchema = new Schema<IVirement>(
       type: String,
       required: true
     },
+    emailDestinataire: {
+      type: String
+    },
     banqueDestinataire: {
       type: String
     },

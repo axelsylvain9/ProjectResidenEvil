@@ -25,7 +25,8 @@ export const createVirement = async (req: Request, res: Response) => {
       type, 
       nomDestinataire, 
       banqueDestinataire, 
-      motif 
+      motif,
+      emailDestinataire 
     } = req.body;
 
     // Validation des champs requis
@@ -59,13 +60,14 @@ export const createVirement = async (req: Request, res: Response) => {
       type,
       nomDestinataire,
       banqueDestinataire,
-      motif
+      motif,
+      emailDestinataire
     });
 
     return res.status(201).json(result);
 
   } catch (error: any) {
-    console.error("❌ Erreur createVirement:", error);
+    console.error("Erreur createVirement:", error);
     return res.status(400).json({
       success: false,
       message: error.message || "Erreur lors de la création du virement"
@@ -100,7 +102,7 @@ export const getVirementById = async (req: Request, res: Response) => {
     return res.status(200).json(result);
 
   } catch (error: any) {
-    console.error("❌ Erreur getVirementById:", error);
+    console.error("Erreur getVirementById:", error);
     return res.status(404).json({
       success: false,
       message: error.message || "Virement non trouvé"
@@ -163,7 +165,7 @@ export const getVirementsByAccount = async (req: Request, res: Response) => {
     return res.status(200).json(result);
 
   } catch (error: any) {
-    console.error("❌ Erreur getVirementsByAccount:", error);
+    console.error("Erreur getVirementsByAccount:", error);
     return res.status(404).json({
       success: false,
       message: error.message || "Erreur lors de la récupération des virements"
@@ -198,7 +200,7 @@ export const getRecentVirements = async (req: Request, res: Response) => {
     return res.status(200).json(result);
 
   } catch (error: any) {
-    console.error("❌ Erreur getRecentVirements:", error);
+    console.error("Erreur getRecentVirements:", error);
     return res.status(404).json({
       success: false,
       message: error.message || "Erreur lors de la récupération des virements récents"
@@ -233,7 +235,7 @@ export const cancelVirement = async (req: Request, res: Response) => {
     return res.status(200).json(result);
 
   } catch (error: any) {
-    console.error("❌ Erreur cancelVirement:", error);
+    console.error("Erreur cancelVirement:", error);
     return res.status(400).json({
       success: false,
       message: error.message || "Erreur lors de l'annulation du virement"

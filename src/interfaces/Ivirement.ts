@@ -13,6 +13,7 @@ export interface IVirement extends Document {
   // Infos destinataire
   nomDestinataire: string;
   banqueDestinataire?: string; // Pour les virements externes
+  emailDestinataire?: string;  // Pour les notifications
   
   motif?: string;
 }

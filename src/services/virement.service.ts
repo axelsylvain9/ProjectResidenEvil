@@ -32,6 +32,7 @@ export class VirementService {
     nomDestinataire: string;
     banqueDestinataire?: string;
     motif?: string;
+    emailDestinataire?: string;
   }) {
     // 1. Vérifier le compte source
     const sourceAccount = await Account.findOne({ 
@@ -84,7 +85,8 @@ export class VirementService {
       compteDestinataire: virementData.compteDestinataire,
       nomDestinataire: virementData.nomDestinataire,
       banqueDestinataire: virementData.banqueDestinataire,
-      motif: virementData.motif
+      motif: virementData.motif,
+      emailDestinataire: virementData.emailDestinataire
     });
 
     await virement.save();
@@ -132,7 +134,7 @@ export class VirementService {
     }
 
     // 9. ENVOI DES EMAILS - ATTENDRE LE RÉSULTAT
-await this.sendVirementEmails(sourceAccount, destinationAccount, virement);
+await this.sendVirementEmails(sourceAccount, destinationAccount, virement, virementData.emailDestinataire);
 
     // 10. RETOURNER LA RÉPONSE
     const virementResponse = virement.toObject();
@@ -310,60 +312,59 @@ await this.sendVirementEmails(sourceAccount, destinationAccount, virement);
   }
 
   // Méthode privée pour l'envoi d'emails (ne bloque pas le retour)
-  private async sendVirementEmails(sourceAccount: any, destinationAccount: any, virement: any) {
-    try {
-      // Récupérer les utilisateurs
-      const user = await User.findById(sourceAccount.userId);
-      const userEmetteur = await User.findById(sourceAccount.userId);
-      
-      if (userEmetteur) {
-        const emailData: any = {
-          nom: userEmetteur.fullName,
+  private async sendVirementEmails(
+  sourceAccount: any, 
+  destinationAccount: any, 
+  virement: any,
+  emailDestinataire?: string
+) {
+  try {
+    // Récupérer les infos de l'émetteur
+    const sourceUser = await User.findById(sourceAccount.userId);
+    
+    if (sourceUser?.email) {
+      // Email de confirmation à l'émetteur
+      await emailService.sendVirementConfirmation(
+        sourceUser.email,
+        {
+          nom: sourceUser.fullName || sourceUser.cin,
           reference: virement.reference,
           montant: virement.montant,
           destinataire: virement.nomDestinataire,
           date: virement.date,
           type: virement.type,
-          compteSource: virement.compteSource
-        };
-        
-        if (virement.motif) emailData.motif = virement.motif;
-        
-        const result = await emailService.sendVirementConfirmation(userEmetteur.email, emailData);
-        console.log(`✅ Email de confirmation envoyé à ${userEmetteur.email}`);
-
-        if (result.success) {
-        console.log(`✅ Email de confirmation envoyé à ${userEmetteur.email}`);
-        if (result.previewUrl) {
-          console.log(`🔗 Aperçu: ${result.previewUrl}`);
+          compteSource: sourceAccount.accountNumber,
+          motif: virement.motif
         }
-      } else {
-        console.error(`❌ Échec email confirmation:`, result.error);
+      );
+    }
+
+    // PRIORITÉ À L'EMAIL FOURNI MANUELLEMENT
+    const emailDuDestinataire = emailDestinataire || 
+      (destinationAccount ? (await User.findById(destinationAccount.userId))?.email : null);
+
+    if (emailDuDestinataire) {
+      const emailResult = await emailService.sendVirementRecu(
+        emailDuDestinataire, // Utilise l'email fourni en priorité
+        {
+          nom: virement.nomDestinataire,
+          expediteur: sourceUser?.fullName || sourceUser?.cin || 'Expéditeur',
+          montant: virement.montant,
+          reference: virement.reference,
+          date: virement.date,
+          motif: virement.motif
+        }
+      );
+      
+      if (emailResult.success) {
+        console.log(`✅ Email de réception envoyé à ${emailDuDestinataire}`);
       }
     }
 
-
-      if (destinationAccount) {
-        const userDestinataire = await User.findById(destinationAccount.userId);
-        if (userDestinataire && userEmetteur) {
-          const emailRecuData: any = {
-            nom: userDestinataire.fullName,
-            expediteur: userEmetteur.fullName,
-            montant: virement.montant,
-            reference: virement.reference,
-            date: virement.date
-          };
-          
-          if (virement.motif) emailRecuData.motif = virement.motif;
-          
-          await emailService.sendVirementRecu(userDestinataire.email, emailRecuData);
-          console.log(`Email de réception envoyé à ${userDestinataire.email}`);
-        }
-      }
-    } catch (error) {
-      console.error('Erreur envoi emails:', error);
-    }
+  } catch (error) {
+    console.error('❌ Erreur envoi emails virement:', error);
   }
+}
 }
 
 export default new VirementService();

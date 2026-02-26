@@ -1,36 +1,53 @@
 import nodemailer from 'nodemailer';
 
 export class EmailService {
-  private transporter!: nodemailer.Transporter; // Ajout du ! pour dire à TypeScript qu'elle sera initialisée plus tard
+  private transporter: nodemailer.Transporter;
 
   constructor() {
-    this.initTransporter();
+    // Configuration avec TES identifiants Ethereal
+    this.transporter = nodemailer.createTransport({
+      host: 'smtp.ethereal.email',
+      port: 587,
+      secure: false, // true pour 465, false pour 587
+      auth: {
+        user: 'tyson77@ethereal.email',
+        pass: 'WWdFJFqzySeB94xvH9'
+      },
+      logger: true,
+      debug: true 
+    });
+
+
+     /*
+    this.transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
+      port: Number(process.env.SMTP_PORT) || 587,
+      secure: false,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      },
+      logger: true,
+      debug: true
+    });
+    */
+
+    console.log('✅ Service email configuré avec Ethereal');
+    
+    // Test de connexion
+    this.verifyConnection();
   }
 
-  private async initTransporter() {
+  private async verifyConnection() {
     try {
-      console.log('Initialisation du service email avec brevo');
-
-      
-      this.transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
-        port: 587,
-        secure: false,
-        auth: {
-          user: process.env.SMTP_USER || 'a32524001@smtp-brevo.com',
-          pass: process.env.SMTP_PASS
-        },
-          logger: true,   // ← Pour voir les logs SMTP
-          debug: true 
-      });
-
-      console.log('Service email configuré avec brevo');
+      await this.transporter.verify();
+      console.log('✅ Connexion Ethereal établie avec succès');
     } catch (error) {
-      console.error('Erreur lors de l\'initialisation du service email:', error);
+      console.error('❌ Erreur de connexion Ethereal:', error);
     }
   }
 
-  // Template HTML avec logo
+  // Template HTML avec logo (inchangé)
   private getEmailTemplate(content: string): string {
     return `
       <!DOCTYPE html>
@@ -363,20 +380,14 @@ export class EmailService {
       </p>
     `;
 
-    const subject = `Échec de virement - ${data.reference}`;
+    const subject = `❌ Échec de virement - ${data.reference}`;
     return this.sendEmail(to, subject, this.getEmailTemplate(content));
   }
 
   // Méthode générique d'envoi
   async sendEmail(to: string, subject: string, html: string) {
     try {
-      // Vérifier que le transporter est initialisé
-      if (!this.transporter) {
-        console.log('Transporteur non initialisé, tentative d\'initialisation...');
-        await this.initTransporter();
-      }
-
-      console.log('Envoi via Ethereal...');
+      console.log(`Envoi via Ethereal...`);
       console.log(`À: ${to}`);
       console.log(`Sujet: ${subject}`);
 
@@ -387,8 +398,9 @@ export class EmailService {
         html: html
       });
 
-      console.log('Email envoyé!');
+      console.log('Email envoyé avec succès!');
       console.log('URL pour voir l\'email:', nodemailer.getTestMessageUrl(info));
+      console.log('Message ID:', info.messageId);
       
       return { 
         success: true, 
@@ -396,7 +408,7 @@ export class EmailService {
         previewUrl: nodemailer.getTestMessageUrl(info)
       };
     } catch (error) {
-      console.error('Erreur:', error);
+      console.error('Erreur lors de l\'envoi:', error);
       return { success: false, error };
     }
   }
