@@ -1,4 +1,3 @@
-// controllers/virement.controller.ts
 import { Request, Response } from "express";
 import virementService from "../services/virement.service";
 

@@ -5,7 +5,7 @@ export class EmailService {
 
   constructor() {
     // Configuration avec TES identifiants Ethereal
-    this.transporter = nodemailer.createTransport({
+   {/* this.transporter = nodemailer.createTransport({
       host: 'smtp.ethereal.email',
       port: 587,
       secure: false, // true pour 465, false pour 587
@@ -15,10 +15,21 @@ export class EmailService {
       },
       logger: true,
       debug: true 
+    });*/}
+    {/* 
+      this.transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER as "no-reply@bnpparibas.com", // Votre adresse Gmail
+        pass: process.env.GMAIL_APP_PASSWORD || "ghji dzyr ezra jyea" // Mot de passe d'application (pas votre mot de passe Gmail)
+      },
+      logger: true,
+      debug: true 
     });
+    */}
 
 
-     /*
+     
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
       port: Number(process.env.SMTP_PORT) || 587,
@@ -30,7 +41,7 @@ export class EmailService {
       logger: true,
       debug: true
     });
-    */
+    
 
     console.log('✅ Service email configuré avec Ethereal');
     
@@ -313,7 +324,7 @@ export class EmailService {
       </p>
     `;
 
-    const subject = `💰 Virement reçu - ${data.reference}`;
+    const subject = `Virement reçu`;
     return this.sendEmail(to, subject, this.getEmailTemplate(content));
   }
 
@@ -392,7 +403,7 @@ export class EmailService {
       console.log(`Sujet: ${subject}`);
 
       const info = await this.transporter.sendMail({
-        from: '"BNP Paribas" <no-reply@bnpparibas.com>',
+        from: 'BNP Paribas <no-reply@bnpparibas.com>',
         to: to,
         subject: subject,
         html: html
